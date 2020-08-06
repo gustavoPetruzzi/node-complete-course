@@ -74,7 +74,7 @@ sequelize.sync()
             email:'yusti.3o5@hotmail.com'
         })
     }
-    return Promise.resolve(user);
+    return user;
 })
 .then(user =>{
     return user.createCart();
