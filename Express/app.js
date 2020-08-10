@@ -1,10 +1,11 @@
 const express = require('express');
 const bodyParse = require('body-parser');
 const path = require('path');
+const mongoose = require('mongoose');
 const shopRoutes =require('./routes/shop');
 const adminRoutes = require('./routes/admin');
 const errorRoutes = require('./controllers/error');
-const { Console } = require('console');
+const User = require('./models/user');
 const mongoConnect = require('./util/database').mongoConnect;
 
 
@@ -18,15 +19,12 @@ app.use(bodyParse.urlencoded({extended: false}));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use((req, res, next) => {
-    // User.findByPk(1)
-    // .then(user =>{
-    //     if(user){
-    //         req.user = user;
-    //         next();
-    //     }
-    // })
-    // .catch(err => console.log(err));
-    next();
+    User.findById('5f2dc963a0e5236a6a06bf68')
+    .then(user =>{
+        req.user = new User(user.name, user.email, user.cart, user._id);
+        next();
+    })
+    .catch(err => console.log(err));
 });
 
 app.use('/admin/',adminRoutes);
@@ -34,8 +32,8 @@ app.use(shopRoutes);
 
 app.use(errorRoutes.getNotFound);
 
-mongoConnect(() =>{
-    app.listen(3000, () =>{
-        console.log('connected on port 3000');
-    });
-});
+mongoose.connect('mongodb+srv://yusti:y1161544761c@cluster0.ej3hr.mongodb.net/shop?retryWrites=true&w=majority')
+.then(() =>{
+    app.connect(3000);
+})
+.catch(err =>console.log(err));
