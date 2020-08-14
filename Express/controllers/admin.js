@@ -4,6 +4,7 @@ exports.getAddProduct = (req,res,next) =>{
     res.render('admin/add-product', {
         pageTitle:'Add product',
         path:'/admin/add-product',
+        isAuthenticated: req.isLoggedIn
     });
 }
 
@@ -35,7 +36,8 @@ exports.getProducts = (req, res,next) =>{
             path:'/admin/products',
             hasProducts: products > 0,
             activeShop: true,
-            productCss: true
+            productCss: true,
+            isAuthenticated: req.isLoggedIn
         })
     })
     .catch(err => console.log(err));

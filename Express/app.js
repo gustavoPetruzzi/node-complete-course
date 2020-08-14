@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const shopRoutes =require('./routes/shop');
 const adminRoutes = require('./routes/admin');
 const errorRoutes = require('./controllers/error');
+const authRoutes = require('./routes/auth');
 const User = require('./models/user');
 
 const mongoConnect = require('./util/database').mongoConnect;
@@ -30,7 +31,7 @@ app.use((req, res, next) => {
 
 app.use('/admin/',adminRoutes);
 app.use(shopRoutes);
-
+app.use(authRoutes);
 app.use(errorRoutes.getNotFound);
 
 mongoose
