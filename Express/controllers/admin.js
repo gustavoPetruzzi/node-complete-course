@@ -4,7 +4,7 @@ exports.getAddProduct = (req,res,next) =>{
     res.render('admin/add-product', {
         pageTitle:'Add product',
         path:'/admin/add-product',
-        isAuthenticated: req.isLoggedIn
+        isAuthenticated: req.session.isLoggedIn
     });
 }
 
@@ -18,7 +18,7 @@ exports.postAddProduct = (req,res,next)=>{
         price: price,
         imageUrl: imageUrl,
         description: description,
-        userId: req.user
+        userId: req.session.user
     });
     product.save()
     .then(result =>{
@@ -37,7 +37,7 @@ exports.getProducts = (req, res,next) =>{
             hasProducts: products > 0,
             activeShop: true,
             productCss: true,
-            isAuthenticated: req.isLoggedIn
+            isAuthenticated: req.session.isLoggedIn
         })
     })
     .catch(err => console.log(err));
