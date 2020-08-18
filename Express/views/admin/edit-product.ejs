@@ -25,6 +25,7 @@
                 <textarea name="description" id="description" rows="5" value="<%= prod.price %>"><%= prod.description %></textarea>
             </div>
             <input  name="productId" id="productId" type="hidden" value="<%= prod._id %>">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <button class="btn" type="submit">Edit Product</button>
         </form>
     </main>

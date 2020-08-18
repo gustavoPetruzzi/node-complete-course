@@ -10,6 +10,8 @@ const User = require('./models/user');
 const session = require('express-session');
 //const mongoConnect = require('./util/database').mongoConnect;
 const MongoDbStore = require('connect-mongodb-session')(session);
+const csrf = require('csurf');
+const flash = require('connect-flash');
 
 
 const app = express();
@@ -17,6 +19,10 @@ const store = new MongoDbStore({
     uri: 'mongodb+srv://yusti:y1161544761c@cluster0.ej3hr.mongodb.net/shop?retryWrites=true&w=majority',
     collection: 'sessions'
 });
+const csrfProtection = csrf();
+
+
+
 app.set('view engine', 'ejs');
 app.set('views, views');
 
@@ -27,16 +33,29 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     store: store
-}))
+}));
 
-// app.use((req, res, next) => {
-//     User.findById('5f3605694810097964182962')
-//     .then(user =>{
-//         req.user = user;
-//         next();
-//     })
-//     .catch(err => console.log(err));
-// });
+app.use(csrfProtection);
+app.use(flash());
+
+app.use((req, res, next) => {
+    if (!req.session.user) {
+        next();
+    } else{
+        User.findById(req.session.user._id)
+        .then(user =>{
+            req.user = user;
+            next();
+        })
+        .catch(err => console.log(err));
+    }
+});
+
+app.use((req, res, next) =>{
+    res.locals.isAuthenticated = req.session.isLoggedIn;
+    res.locals.csrfToken = req.csrfToken();
+    next();
+})
 
 app.use('/admin/',adminRoutes);
 app.use(shopRoutes);
@@ -52,19 +71,6 @@ mongoose
         }
     )
     .then(() =>{
-        User.findOne()
-        .then(user =>{
-            if(!user){
-                const user = new User({
-                    name: 'Yusti',
-                    email: 'yusti@gmail.com',
-                    cart:{
-                        items: []
-                    }
-                });
-                user.save();
-            }
-        })
         app.listen(3000);
     })
     .catch(err =>console.log("mongo error", err));

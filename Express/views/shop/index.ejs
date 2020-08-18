@@ -21,12 +21,15 @@
                             <h2 class="product__price">$<%= product.price %></h2>
                             <p class="product__description"><%= product.description %></p>
                         </div>
-                        <div class="card__actions">
-                            <form action="/cart" method="POST">
-                                <button class="btn">Add to Cart</button>
-                                <input type="hidden" name="productId" value="<%= product._id %>">
-                            </form>
-                        </div>
+                        <% if(isAuthenticated) { %>
+                            <div class="card__actions">
+                                <form action="/cart" method="POST">
+                                    <button class="btn">Add to Cart</button>
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                    <input type="hidden" name="productId" value="<%= product._id %>">
+                                </form>
+                            </div>
+                        <% } %>
                     </article>
                 <% } %>
             </div>
