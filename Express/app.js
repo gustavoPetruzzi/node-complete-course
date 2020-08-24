@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParse = require('body-parser');
+const multer = require('multer');
 const path = require('path');
 const mongoose = require('mongoose');
 const shopRoutes =require('./routes/shop');
@@ -21,13 +22,36 @@ const store = new MongoDbStore({
 });
 const csrfProtection = csrf();
 
+const fileStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'images')
+    },
+    filename: (req, file, cb) =>{
+        cb(null, new Date().getTime().toString() + '-' + file.originalname)
+    }
+});
 
+const fileFilter = (req,file, cb) =>{
+    if(
+        file.mimetype === 'image/png' || 
+        file.mimetype === 'image/jpg' || 
+        file.mimetype === 'image/jpeg'
+    ) {
+        cb(null, true);
+    } else {
+        cb(null, false);
+    }
+
+}
 
 app.set('view engine', 'ejs');
 app.set('views, views');
 
 app.use(bodyParse.urlencoded({extended: false}));
+app.use(multer( {storage: fileStorage, fileFilter: fileFilter} ).single('image'));
+
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use(session({
     secret: 'my secret',
     resave: false,
@@ -44,10 +68,15 @@ app.use((req, res, next) => {
     } else{
         User.findById(req.session.user._id)
         .then(user =>{
+            if(!user){
+                return next();
+            }
             req.user = user;
             next();
         })
-        .catch(err => console.log(err));
+        .catch(err => {
+            next(new Error(err));
+        });
     }
 });
 
@@ -61,7 +90,12 @@ app.use('/admin/',adminRoutes);
 app.use(shopRoutes);
 app.use(authRoutes);
 app.use(errorRoutes.getNotFound);
+app.use(errorRoutes.get500);
 
+app.use((error, req, res, next)=> {
+    console.log(error);
+    res.redirect('/500');
+})
 mongoose
     .connect(
         'mongodb+srv://yusti:y1161544761c@cluster0.ej3hr.mongodb.net/shop?retryWrites=true&w=majority',

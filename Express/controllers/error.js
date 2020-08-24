@@ -5,3 +5,11 @@ exports.getNotFound = (req,res,next) =>{
         isAuthenticated: req.session.isLoggedIn
     });
 }
+
+exports.get500 = (req,res,next) =>{
+    res.status(500).render('500', {
+        pageTitle:'Error',
+        path:'/500-algo',
+        isAuthenticated: req.session.isLoggedIn
+    });
+}
