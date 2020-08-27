@@ -4,19 +4,33 @@ const fs = require('fs');
 const path  = require('path');
 const pdfDocument = require('pdfkit');
 
+const ITEMS_PER_PAGE = 1;
+
 exports.getProducts = (req,res, next) =>{
-    Product.find()
-    .then(products =>{
+    const page = +req.query.page || 1;
+    let totalItems;
+    Product.countDocuments()
+    .then(numProducts =>{
+        totalItems = numProducts;
+        return Product.find()
+        .skip((page - 1) * ITEMS_PER_PAGE)
+        .limit(ITEMS_PER_PAGE)
+    })
+    .then((products) => {
+        console.log(products.length);
         res.render('shop/productList',{
             prods: products,
-            pageTitle: 'Products',
+            pageTitle:'Shop',
             path:'/products',
-            hasProducts: products >0,
-        });      
+            currentPage: page,
+            hasNextPage: ITEMS_PER_PAGE * page < totalItems,
+            hasPreviousPage: page > 1,
+            nextPage: page + 1,
+            previousPage: page - 1,
+            lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE)
+        })  
     })
-    .catch(err =>{
-        console.log(err);
-    })
+    .catch(err => console.log(err));
 }
 
 exports.getProduct = (req, res, next) =>{
@@ -34,14 +48,27 @@ exports.getProduct = (req, res, next) =>{
 }
 
 exports.getIndex = (req, res, next) =>{
-    Product.find()
+    const page = +req.query.page || 1;
+    let totalItems;
+    Product.countDocuments()
+    .then(numProducts =>{
+        totalItems = numProducts;
+        return Product.find()
+        .skip((page - 1) * ITEMS_PER_PAGE)
+        .limit(ITEMS_PER_PAGE)
+    })
     .then((products) => {
+        console.log(products.length);
         res.render('shop/index',{
             prods: products,
             pageTitle:'Shop',
             path:'/',
-            activeShop: true,
-            productCss: true,
+            currentPage: page,
+            hasNextPage: ITEMS_PER_PAGE * page < totalItems,
+            hasPreviousPage: page > 1,
+            nextPage: page + 1,
+            previousPage: page - 1,
+            lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE)
         })  
     })
     .catch(err => console.log(err));
@@ -159,11 +186,13 @@ exports.getInvoice = (req, res, next) =>{
         });
 
         pdfDoc.text('---------------------');
+        let totalPrice = 0;
         order.products.forEach(prod =>{
-            pdfDoc.text(`${prod.product.title} - ${prod.quantity}x `) ;
-
+            totalPrice = totalPrice = prod.quantity * prod.product.price;
+            pdfDoc.text(`${prod.product.title} - ${prod.quantity}x $ ${prod.product.price}`) ;
         })
 
+        pdfDoc.text(`Total price: $${totalPrice}`);
         pdfDoc.end();
         // READ THE ENTIRE FILE (HUGE MEMORY USE IF FILE IS BIG)
         // fs.readFile(invoicePath, (err, data)=>{
