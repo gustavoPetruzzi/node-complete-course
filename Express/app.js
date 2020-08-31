@@ -98,7 +98,7 @@ app.use((error, req, res, next)=> {
 })
 mongoose
     .connect(
-        'mongodb+srv://yusti:y1161544761c@cluster0.ej3hr.mongodb.net/shop?retryWrites=true&w=majority',
+        'mongodb+srv://yusti:y1161544761c@cluster0.ej3hr.mongodb.net/messages?retryWrites=true&w=majority',
         { 
             useNewUrlParser: true,
             useUnifiedTopology: true, 
