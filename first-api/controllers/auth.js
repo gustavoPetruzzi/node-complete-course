@@ -3,7 +3,7 @@ const { validationResult } = require('express-validator/check');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-exports.signup = (req, res, next) =>{
+exports.signup =  (req, res, next) =>{
     const errors = validationResult(req);
     if(!errors.isEmpty()){
         const error = new Error('Validatio failed');
@@ -41,21 +41,19 @@ exports.signup = (req, res, next) =>{
 
 };
 
-exports.login = (req, res, next) => {
+exports.login = async (req, res, next) => {
     const email = req.body.email;
     const password = req.body.password;
     let loadedUser;
-    User.findOne({email: email})
-    .then(user =>{
+    try{
+        const user = await User.findOne({email: email})
         if(!user){
             const error = new Error('User not found');
             error.statusCode = 401;
             throw error;
         }
         loadedUser = user;
-        return bcrypt.compare(password, user.password)
-    })
-    .then(isEqual =>{
+        const isEqual = await bcrypt.compare(password, user.password)
         if(!isEqual){
             const error = new Error('Wrong password');
             error.statusCode = 401;
@@ -72,12 +70,55 @@ exports.login = (req, res, next) => {
         res.status(200).json({
             token: token,
             userId: loadedUser._id.toString()
-        })
-    })
-    .catch(err =>{
-        if(!err.statusCode){
-            err.statusCode = 500;
+        });
+    } catch (error){
+        if(!error.statusCode){
+            error.statusCode = 500;
         }
-        next(err);
-    })
+        next(error);
+    }
+}
+
+exports.getStatus = async (req, res, next) =>{
+    try{
+        const user = await User.findById(req.userId)
+        if(!user){
+            const error = new Error('User not found');
+            error.statusCode = 401;
+            throw error;
+        }
+        res.status(200).json({
+            message: 'Fetched status successfully',
+            status: user.status
+        })
+    } catch(error){
+        if(!error.statusCode){
+            error.statusCode = 500;
+        }
+        next(error);
+    }
+}
+
+exports.setStatus = async (req, res, next) => {
+    const newStatus = req.body.status;
+    try {
+        const user = await User.findById(req.userId)
+        if(!user){
+            const error = new Error('User not found');
+            error.statusCode = 401;
+            throw error;
+        }
+        user.status = newStatus;
+        console.log(user);
+        const result = await user.save();
+        res.status(200).json({
+            message: 'Status updated successfully',
+            status: result.status
+        })
+    } catch(error){
+        if(!error.statusCode){
+            error.statusCode = 500;
+        }
+        next(error);
+    }
 }
